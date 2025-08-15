@@ -5,7 +5,6 @@ const { logSchema } = require('../utils/validate');
 
 const router = express.Router();
 
-// Ingest a log
 router.post('/', async (req, res) => {
   const { error, value } = logSchema.validate(req.body, { abortEarly: false });
   if (error) {
@@ -17,26 +16,13 @@ router.post('/', async (req, res) => {
   const logs = await readLogs();
   logs.push(value);
   await writeLogs(logs);
+
+  // Emit to clients
+  const io = req.app.get('io');
+  if (io) io.emit('log:new', value);
+
   return res.status(201).json(value);
 });
-
-// Helpers for filtering
-function matches(log, q) {
-  if (q.level && log.level !== q.level) return false;
-  if (q.resourceId && log.resourceId !== q.resourceId) return false;
-  if (q.traceId && log.traceId !== q.traceId) return false;
-  if (q.spanId && log.spanId !== q.spanId) return false;
-  if (q.commit && log.commit !== q.commit) return false;
-
-  if (q.search) {
-    const msg = (log.message || '').toLowerCase();
-    if (!msg.includes(q.search.toLowerCase())) return false;
-  }
-  if (q.start && dayjs(log.timestamp).isBefore(dayjs(q.start))) return false;
-  if (q.end && dayjs(log.timestamp).isAfter(dayjs(q.end))) return false;
-
-  return true;
-}
 
 // Query logs with filters
 router.get('/', async (req, res) => {
