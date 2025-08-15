@@ -10,5 +10,17 @@
     "metadata": {
       "parentResourceId": "server-0987"
     }
+  },
+  {
+    "level": "info",
+    "message": "Live test from curl",
+    "resourceId": "server-1234",
+    "timestamp": "2025-08-15T05:42:07.000Z",
+    "traceId": "t1",
+    "spanId": "s1",
+    "commit": "abc123",
+    "metadata": {
+      "parentResourceId": "server-5678"
+    }
   }
 ]

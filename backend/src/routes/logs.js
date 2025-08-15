@@ -13,6 +13,7 @@ router.post('/', async (req, res) => {
       details: error.details.map(d => d.message)
     });
   }
+
   const logs = await readLogs();
   logs.push(value);
   await writeLogs(logs);
@@ -23,6 +24,25 @@ router.post('/', async (req, res) => {
 
   return res.status(201).json(value);
 });
+
+// Helper function to match filters
+function matches(log, q) {
+  if (q.level && log.level !== q.level) return false;
+  if (q.resourceId && log.resourceId !== q.resourceId) return false;
+  if (q.traceId && log.traceId !== q.traceId) return false;
+  if (q.spanId && log.spanId !== q.spanId) return false;
+  if (q.commit && log.commit !== q.commit) return false;
+
+  if (q.search) {
+    const msg = (log.message || '').toLowerCase();
+    if (!msg.includes(q.search.toLowerCase())) return false;
+  }
+
+  if (q.start && dayjs(log.timestamp).isBefore(dayjs(q.start))) return false;
+  if (q.end && dayjs(log.timestamp).isAfter(dayjs(q.end))) return false;
+
+  return true;
+}
 
 // Query logs with filters
 router.get('/', async (req, res) => {
@@ -37,12 +57,17 @@ router.get('/', async (req, res) => {
     end: req.query.end || req.query.to || req.query._end
   };
 
-  const logs = await readLogs();
-  const filtered = logs
-    .filter(l => matches(l, q))
-    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  try {
+    const logs = await readLogs();
+    const filtered = logs
+      .filter(l => matches(l, q))
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-  res.json(filtered);
+    res.json(filtered);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to retrieve logs' });
+  }
 });
 
 module.exports = router;
