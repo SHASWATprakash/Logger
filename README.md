@@ -88,3 +88,23 @@ Copy
 Edit
 cd backend
 npm run dev
+
+# Enhancements
+- **Debounced search (400ms)** to reduce API calls.
+- **Clear filters** button to reset all criteria.
+- **Live updates (bonus):** When new logs are ingested, they appear instantly.
+
+**Run order**
+1. Backend
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+Frontend
+
+bash
+Copy
+Edit
+cd ../frontend
+npm install
+npm run dev
