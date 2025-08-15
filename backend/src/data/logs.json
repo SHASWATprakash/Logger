@@ -22,5 +22,41 @@
     "metadata": {
       "parentResourceId": "server-5678"
     }
+  },
+  {
+    "level": "info",
+    "message": "User login succeeded",
+    "resourceId": "server-1234",
+    "timestamp": "2025-08-15T10:00:00.000Z",
+    "traceId": "t1",
+    "spanId": "s1",
+    "commit": "abc123",
+    "metadata": {
+      "parentResourceId": "server-5678"
+    }
+  },
+  {
+    "level": "error",
+    "message": "Database connection failed",
+    "resourceId": "server-5678",
+    "timestamp": "2025-08-15T11:00:00.000Z",
+    "traceId": "t2",
+    "spanId": "s2",
+    "commit": "def456",
+    "metadata": {
+      "parentResourceId": "server-1234"
+    }
+  },
+  {
+    "level": "warn",
+    "message": "Disk space running low",
+    "resourceId": "server-9999",
+    "timestamp": "2025-08-14T09:00:00.000Z",
+    "traceId": "t3",
+    "spanId": "s3",
+    "commit": "ghi789",
+    "metadata": {
+      "parentResourceId": "server-0000"
+    }
   }
 ]
