@@ -3,6 +3,7 @@ import FilterBar from './components/FilterBar';
 import LogList from './components/LogList';
 import { getLogs } from './services/api';
 import { useDebounce } from './hooks/useDebounce';
+import { socket } from './services/socket';
 
 function App() {
   const [logs, setLogs] = useState([]);
@@ -15,10 +16,8 @@ function App() {
   });
   const [loading, setLoading] = useState(false);
 
-  // Debounce only the search text; other filters remain instant
   const debouncedSearch = useDebounce(filters.search, 400);
 
-  // Build API params using debounced search
   const apiParams = useMemo(() => ({
     ...filters,
     search: debouncedSearch
@@ -38,6 +37,38 @@ function App() {
     };
     fetchLogs();
   }, [apiParams]);
+
+  // Helper to decide if a new log matches current filters
+  function matchesFilters(log) {
+    const { level, resourceId, start, end } = filters;
+    const s = (filters.search || '').toLowerCase();
+
+    if (level && log.level !== level) return false;
+    if (resourceId && log.resourceId !== resourceId) return false;
+    if (s && !(log.message || '').toLowerCase().includes(s)) return false;
+
+    if (start) {
+      const startTs = new Date(start).getTime();
+      if (new Date(log.timestamp).getTime() < startTs) return false;
+    }
+    if (end) {
+      const endTs = new Date(end).getTime();
+      if (new Date(log.timestamp).getTime() > endTs) return false;
+    }
+    return true;
+  }
+
+  // Live updates
+  useEffect(() => {
+    const handler = (newLog) => {
+      if (matchesFilters(newLog)) {
+        // Prepend newest
+        setLogs(prev => [newLog, ...prev]);
+      }
+    };
+    socket.on('log:new', handler);
+    return () => socket.off('log:new', handler);
+  }, [filters]); // re-evaluate on filter change
 
   return (
     <div className="max-w-4xl mx-auto">
